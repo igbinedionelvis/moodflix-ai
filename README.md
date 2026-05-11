@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+MoodFlix is a cinematic AI-powered movie discovery app built with Next.js.
 
 ## Getting Started
 
-First, run the development server:
+1) Install dependencies:
+
+```bash
+npm install
+```
+
+2) Configure environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+Then set these values in `.env.local`:
+
+- `OPENAI_API_KEY` - API key for emotional analysis
+- `OPENAI_MODEL` - optional model override (default: `gpt-4o-mini`)
+- `TMDB_API_KEY` - API key for fetching movies from TMDB
+
+3) Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Recommendation API
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Endpoint: `POST /api/recommend`
 
-## Learn More
+Request body:
 
-To learn more about Next.js, take a look at the following resources:
+```json
+{
+  "moods": ["comfort", "healing"],
+  "emotionalInput": "I had a stressful week and want something emotionally comforting."
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+What it does:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- analyzes emotional input via OpenAI
+- extracts mood themes
+- maps moods/themes to TMDB genre IDs
+- fetches matching movies from TMDB
+- returns:
+  - emotional profile
+  - recommendation explanation
+  - recommendation array with emotional fit scores
 
-## Deploy on Vercel
+Core implementation modules:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `src/lib/openai.ts`
+- `src/lib/mood-map.ts`
+- `src/lib/tmdb.ts`
+- `src/app/api/recommend/route.ts`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes
+
+- This backend flow is intentionally simple and portfolio-friendly.
+- Recommendation ranking can be improved later with user history and embeddings.
+
