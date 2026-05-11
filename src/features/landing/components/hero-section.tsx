@@ -7,12 +7,17 @@ import { useMemo, useState } from "react"
 import { AiAnalysisOverlay } from "@/features/landing/components/ai-analysis-overlay"
 import { AiMoodInputSection } from "@/features/landing/components/ai-mood-input-section"
 import { MoodChips } from "@/features/landing/components/mood-chips"
-import { RecommendationResultsPlaceholder } from "@/features/landing/components/recommendation-results-placeholder"
+import { RecommendationResultsSection } from "@/features/landing/components/recommendation-results-section"
+import type { RecommendResponse } from "@/types/recommendation"
 
 export function HeroSection() {
   const [selectedMoods, setSelectedMoods] = useState<string[]>([])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [hasResults, setHasResults] = useState(false)
+  const [recommendationData, setRecommendationData] =
+    useState<RecommendResponse | null>(null)
+  const [recommendationError, setRecommendationError] = useState<string | null>(
+    null
+  )
 
   const selectedCount = selectedMoods.length
   const hasSelectedMoods = selectedCount > 0
@@ -35,12 +40,48 @@ export function HeroSection() {
     )
   }
 
-  const handleMoodSubmit = async () => {
-    setHasResults(false)
+  const handleMoodSubmit = async (emotionalInput: string) => {
+    setRecommendationData(null)
+    setRecommendationError(null)
     setIsAnalyzing(true)
-    await new Promise((resolve) => setTimeout(resolve, 5200))
-    setIsAnalyzing(false)
-    setHasResults(true)
+
+    const minimumCinematicDelay = new Promise((resolve) =>
+      setTimeout(resolve, 3200)
+    )
+
+    try {
+      const request = fetch("/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          moods: selectedMoods,
+          emotionalInput,
+        }),
+      })
+
+      const [response] = await Promise.all([request, minimumCinematicDelay])
+
+      if (!response.ok) {
+        const errorBody = (await response.json().catch(() => null)) as
+          | { error?: string }
+          | null
+        throw new Error(
+          errorBody?.error ??
+            "Unable to generate recommendations right now. Please try again."
+        )
+      }
+
+      const data = (await response.json()) as RecommendResponse
+      setRecommendationData(data)
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unexpected recommendation error."
+      setRecommendationError(message)
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
   return (
@@ -107,7 +148,13 @@ export function HeroSection() {
           </motion.div>
 
           <AnimatePresence>
-            {hasResults ? <RecommendationResultsPlaceholder /> : null}
+            {!isAnalyzing &&
+            (recommendationData !== null || recommendationError !== null) ? (
+              <RecommendationResultsSection
+                data={recommendationData}
+                error={recommendationError}
+              />
+            ) : null}
           </AnimatePresence>
         </motion.div>
       </div>

@@ -10,11 +10,60 @@ import type {
   RecommendResponse,
 } from "@/types/recommendation"
 
+const TMDB_BASE_URL = "https://api.themoviedb.org/3"
+
+type TmdbPopularMovie = {
+  title: string
+  poster_path: string | null
+  release_date: string
+  vote_average: number
+}
+
+type TmdbPopularResponse = {
+  results: TmdbPopularMovie[]
+}
+
 export async function GET() {
-  return NextResponse.json(
-    { success: true, message: "Recommend API is reachable." },
-    { status: 200 }
-  )
+  try {
+    const tmdbApiKey = process.env.TMDB_API_KEY
+    if (!tmdbApiKey) {
+      return NextResponse.json(
+        { error: "Missing TMDB_API_KEY environment variable." },
+        { status: 500 }
+      )
+    }
+
+    const response = await fetch(`${TMDB_BASE_URL}/movie/popular?language=en-US&page=1`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${tmdbApiKey}`,
+      },
+      cache: "no-store",
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      return NextResponse.json(
+        { error: `TMDB popular movies request failed: ${errorText}` },
+        { status: response.status }
+      )
+    }
+
+    const data = (await response.json()) as TmdbPopularResponse
+    const movies = (data.results ?? []).slice(0, 10).map((movie) => ({
+      title: movie.title,
+      poster_path: movie.poster_path,
+      release_date: movie.release_date,
+      vote_average: movie.vote_average,
+    }))
+
+    return NextResponse.json({ success: true, movies }, { status: 200 })
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected TMDB integration error."
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }
 
 function fallbackProfile(moods: string[], emotionalInput: string): EmotionalProfile {
