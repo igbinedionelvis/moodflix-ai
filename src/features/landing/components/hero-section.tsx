@@ -1,12 +1,48 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Sparkles, WandSparkles } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { Sparkles } from "lucide-react"
+import { useMemo, useState } from "react"
 
-import { Button } from "@/components/ui/button"
+import { AiAnalysisOverlay } from "@/features/landing/components/ai-analysis-overlay"
+import { AiMoodInputSection } from "@/features/landing/components/ai-mood-input-section"
 import { MoodChips } from "@/features/landing/components/mood-chips"
+import { RecommendationResultsPlaceholder } from "@/features/landing/components/recommendation-results-placeholder"
 
 export function HeroSection() {
+  const [selectedMoods, setSelectedMoods] = useState<string[]>([])
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [hasResults, setHasResults] = useState(false)
+
+  const selectedCount = selectedMoods.length
+  const hasSelectedMoods = selectedCount > 0
+
+  const helperText = useMemo(() => {
+    if (!hasSelectedMoods) {
+      return "Select one or more moods to continue."
+    }
+    return `${selectedCount} mood${selectedCount > 1 ? "s" : ""} selected`
+  }, [hasSelectedMoods, selectedCount])
+
+  const toggleMood = (mood: string) => {
+    if (isAnalyzing) {
+      return
+    }
+    setSelectedMoods((current) =>
+      current.includes(mood)
+        ? current.filter((item) => item !== mood)
+        : [...current, mood]
+    )
+  }
+
+  const handleMoodSubmit = async () => {
+    setHasResults(false)
+    setIsAnalyzing(true)
+    await new Promise((resolve) => setTimeout(resolve, 5200))
+    setIsAnalyzing(false)
+    setHasResults(true)
+  }
+
   return (
     <section className="relative flex min-h-screen items-center px-4 py-8 sm:px-6">
       <div className="mx-auto w-full max-w-6xl">
@@ -51,28 +87,31 @@ export function HeroSection() {
             transition={{ delay: 0.28, duration: 0.5 }}
             className="mt-8"
           >
-            <MoodChips />
+            <MoodChips selectedMoods={selectedMoods} onToggle={toggleMood} />
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.38, duration: 0.5 }}
-            className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+            className="mt-8"
           >
-            <Button
-              size="lg"
-              className="h-11 rounded-full bg-white text-black hover:bg-white/90"
-            >
-              <WandSparkles className="size-4" />
-              Discover My Mood Match
-            </Button>
             <p className="text-sm text-white/60">
-              Personalized in under 30 seconds.
+              {helperText}
             </p>
+            <AiMoodInputSection
+              selectedMoodCount={selectedCount}
+              isAnalyzing={isAnalyzing}
+              onSubmitMood={handleMoodSubmit}
+            />
           </motion.div>
+
+          <AnimatePresence>
+            {hasResults ? <RecommendationResultsPlaceholder /> : null}
+          </AnimatePresence>
         </motion.div>
       </div>
+      <AiAnalysisOverlay isVisible={isAnalyzing} />
     </section>
   )
 }
