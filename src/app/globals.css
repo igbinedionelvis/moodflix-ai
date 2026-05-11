@@ -123,8 +123,34 @@
   }
   body {
     @apply bg-background text-foreground;
+    background: radial-gradient(
+      circle at 20% -20%,
+      rgba(192, 132, 252, 0.12),
+      transparent 32%
+    );
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  .cinematic-gradient {
+    background:
+      radial-gradient(circle at 8% 10%, rgba(217, 70, 239, 0.25), transparent 35%),
+      radial-gradient(circle at 85% 14%, rgba(56, 189, 248, 0.2), transparent 34%),
+      radial-gradient(circle at 50% 95%, rgba(30, 41, 59, 0.55), transparent 40%),
+      linear-gradient(135deg, #020617 0%, #020617 35%, #111827 100%);
+    background-size: 180% 180%;
+    animation: cinematic-shift 14s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes cinematic-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
   }
 }
