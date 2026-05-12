@@ -131,22 +131,7 @@ export async function POST(request: Request) {
       );
     }
 
-    let profile: EmotionalProfile;
-    try {
-      profile = await analyzeEmotionalProfile({
-        emotionalInput,
-        selectedMoods: moods,
-      });
-    } catch (error) {
-      console.error("POST ROUTE ERROR:", error);
-
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unexpected recommendation error.";
-
-      return NextResponse.json({ error: message }, { status: 500 });
-    }
+    const profile = fallbackProfile(moods, emotionalInput);
 
     const genreIds = mapMoodsToGenreIds(moods, profile.themes);
     const movies = await fetchMoviesByGenres({ genreIds, limit: 8 });
