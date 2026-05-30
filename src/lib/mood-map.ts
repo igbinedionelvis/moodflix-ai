@@ -20,33 +20,36 @@ export function mapMoodsToGenreIds(
   const normalizedSelections = selectedMoods.map((mood) => mood.toLowerCase());
   const normalizedThemes = inferredThemes.map((theme) => theme.toLowerCase());
 
-  const set = new Set<number>();
+  const genreFrequency = new Map<number, number>();
 
-  for (const mood of normalizedSelections) {
+  normalizedSelections.forEach((mood, index) => {
+    const weight = Math.max(1, 3 - index);
+
     for (const genreId of moodToGenreMap[mood] ?? []) {
-      set.add(genreId);
+      genreFrequency.set(genreId, (genreFrequency.get(genreId) ?? 0) + weight);
     }
-  }
+  });
 
   for (const theme of normalizedThemes) {
     for (const [mood, genreIds] of Object.entries(moodToGenreMap)) {
       if (!theme.includes(mood) && !mood.includes(theme)) {
         continue;
       }
+
       for (const genreId of genreIds) {
-        set.add(genreId);
+        genreFrequency.set(genreId, (genreFrequency.get(genreId) ?? 0) + 1);
       }
     }
   }
 
-  if (set.size === 0) {
-    for (const genreId of fallbackGenres) {
-      set.add(genreId);
-    }
+  if (genreFrequency.size === 0) {
+    return fallbackGenres;
   }
 
-  const genreIds = [...set];
+  const finalGenres = [...genreFrequency.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([genreId]) => genreId);
 
-  // Prioritize consistency and avoid over-filtering
-  return genreIds.length > 3 ? genreIds.slice(0, 3) : genreIds;
+  return finalGenres;
 }

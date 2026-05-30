@@ -33,7 +33,7 @@ export async function fetchMoviesByGenres({
     include_adult: "false",
     include_video: "false",
     language: "en-US",
-    page: "1",
+    page: Math.floor(Math.random() * 3 + 1).toString(),
     sort_by: "vote_average.desc",
     "vote_count.gte": "150",
     "vote_average.gte": "6.5",
