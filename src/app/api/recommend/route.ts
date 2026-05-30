@@ -134,7 +134,12 @@ export async function POST(request: Request) {
     const profile = fallbackProfile(moods, emotionalInput);
 
     const genreIds = mapMoodsToGenreIds(moods, profile.themes);
+
+    console.log("GENRE IDS:", genreIds);
+
     const movies = await fetchMoviesByGenres({ genreIds, limit: 8 });
+    console.log("MOVIES FOUND:", movies.length);
+    console.log("FIRST MOVIE:", movies[0]);
 
     const recommendations: MovieRecommendation[] = movies.map((movie) => ({
       id: movie.id,

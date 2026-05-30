@@ -34,8 +34,9 @@ export async function fetchMoviesByGenres({
     include_video: "false",
     language: "en-US",
     page: "1",
-    sort_by: "popularity.desc",
+    sort_by: "vote_average.desc",
     "vote_count.gte": "150",
+    "vote_average.gte": "6.5",
     with_genres: genreIds.join(","),
   });
 
