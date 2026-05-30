@@ -111,15 +111,10 @@ function buildRecommendationReason(
 
 export async function POST(request: Request) {
   try {
-    console.log("POST ROUTE HIT");
-
     const body = (await request.json()) as Partial<RecommendRequest>;
-    console.log("BODY:", body);
 
     const moods = Array.isArray(body.moods) ? body.moods.filter(Boolean) : [];
     const emotionalInput = body.emotionalInput?.trim() ?? "";
-    console.log("MOODS:", moods);
-    console.log("INPUT:", emotionalInput);
 
     if (moods.length === 0 || emotionalInput.length < 8) {
       return NextResponse.json(
@@ -135,11 +130,7 @@ export async function POST(request: Request) {
 
     const genreIds = mapMoodsToGenreIds(moods, profile.themes);
 
-    console.log("GENRE IDS:", genreIds);
-
     const movies = await fetchMoviesByGenres({ genreIds, limit: 8 });
-    console.log("MOVIES FOUND:", movies.length);
-    console.log("FIRST MOVIE:", movies[0]);
 
     const recommendations: MovieRecommendation[] = movies.map((movie) => ({
       id: movie.id,
